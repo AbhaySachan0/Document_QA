@@ -1,0 +1,58 @@
+.app-container {
+  display: flex;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+.sidebar {
+  width: 300px;
+  background: #f8f9fa;
+  padding: 15px;
+  border-right: 1px solid #ddd;
+}
+
+.upload-section, .ask-section {
+  margin-bottom: 20px;
+}
+
+.ask-section textarea {
+  width: 100%;
+  height: 80px;
+  margin-bottom: 10px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-window {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.message-card {
+  border-radius: 8px;
+  padding: 10px;
+  margin: 10px 0;
+  max-width: 80%;
+}
+
+.message-card.user {
+  background: #d1ecf1;
+  align-self: flex-end;
+}
+
+.message-card.assistant {
+  background: #f8d7da;
+  align-self: flex-start;
+}
+
+.contexts {
+  margin-top: 8px;
+  font-size: 0.9em;
+  color: #555;
+}
