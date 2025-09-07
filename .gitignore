@@ -1,0 +1,11 @@
+
+# Environment files
+
+backend/.env
+
+# Virtual environment
+backend/.venv/
+venv/
+
+
+frontend/node_modules

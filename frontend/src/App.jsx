@@ -1,29 +1,41 @@
 import React, { useState } from "react";
 import axios from "axios";
-import Sidebar from "./components/Sidebar";
-import ChatWindow from "./components/ChatWindow";
+import Sidebar from "./components/Sidebar.jsx";
+import ChatWindow from "./components/ChatWindow.jsx";
 import "./App.css";
+
+// Use .env value, fallback to localhost:8000
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
 function App() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // -----------------------------
+  // Upload a file
+  // -----------------------------
   const handleUpload = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const res = await axios.post("http://localhost:8000/upload", formData, {
+      const res = await axios.post(`${API_BASE}/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       alert(res.data.message);
     } catch (err) {
       console.error(err);
-      alert("Upload failed");
+      alert("⚠️ Upload failed – is the backend running?");
     }
   };
 
+  // -----------------------------
+  // Ask a question
+  // -----------------------------
   const handleAsk = async (question, topK) => {
+    if (!question.trim()) return;
+
+    // Add user message
     setMessages((prev) => [...prev, { role: "user", text: question }]);
     setLoading(true);
 
@@ -32,19 +44,29 @@ function App() {
       formData.append("question", question);
       formData.append("top_k", topK);
 
-      const res = await axios.post("http://localhost:8000/ask", formData);
-      const answer = res.data.answer;
-      const contexts = res.data.contexts;
+      const res = await axios.post(`${API_BASE}/ask`, formData);
 
+      const answer = res.data.answer || "No answer returned";
+      const contexts = res.data.contexts || [];
+
+      // Add assistant message
       setMessages((prev) => [
         ...prev,
         { role: "assistant", text: answer, contexts },
       ]);
     } catch (err) {
       console.error(err);
-      alert("Error getting answer");
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: "⚠️ Error contacting backend. Please try again.",
+          contexts: [],
+        },
+      ]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

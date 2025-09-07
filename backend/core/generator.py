@@ -3,6 +3,11 @@ import os
 from typing import List, Dict
 import openai
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")  # change if necessary
 
 class Generator:
