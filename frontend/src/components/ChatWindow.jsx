@@ -6,41 +6,42 @@ function ChatWindow({ messages, setMessages }) {
   const [loading, setLoading] = useState(false);
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+  if (!input.trim()) return;
 
-    // Add user message to chat
-    const newMessage = { role: "user", text: input, contexts: [] };
-    setMessages((prev) => [...prev, newMessage]);
+  // Add user message to chat
+  const newMessage = { role: "user", text: input, contexts: [] };
+  setMessages((prev) => [...prev, newMessage]);
 
-    setLoading(true);
-    try {
-      // Send to backend
-      const res = await fetch("http://127.0.0.1:8000/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: input }),
-      });
+  setLoading(true);
+  try {
+    const formData = new FormData();
+    formData.append("question", input);
+    formData.append("top_k", 5); // or make it dynamic
 
-      const data = await res.json();
+    const res = await fetch("http://127.0.0.1:8000/ask", {
+      method: "POST",
+      body: formData, // ✅ send as form data
+    });
 
-      // Add assistant's response to chat
-      const botMessage = {
-        role: "assistant",
-        text: data.answer || "No answer received",
-        contexts: [],
-      };
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
-      console.error(error);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: "⚠️ Backend request failed", contexts: [] },
-      ]);
-    } finally {
-      setLoading(false);
-      setInput("");
-    }
-  };
+    const data = await res.json();
+
+    const botMessage = {
+      role: "assistant",
+      text: data.answer || "No answer received",
+      contexts: [],
+    };
+    setMessages((prev) => [...prev, botMessage]);
+  } catch (error) {
+    console.error("Backend request failed:", error);
+    setMessages((prev) => [
+      ...prev,
+      { role: "assistant", text: "⚠️ Backend request failed", contexts: [] },
+    ]);
+  } finally {
+    setLoading(false);
+    setInput("");
+  }
+};
 
   return (
     <div className="chat-window">

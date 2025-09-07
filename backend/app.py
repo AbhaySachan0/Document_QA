@@ -1,7 +1,8 @@
-# backend/app.py
 import os
-from fastapi import FastAPI, UploadFile, File, Form
+import logging
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from core.pipeline import RAGPipeline
 import uvicorn
 from dotenv import load_dotenv
@@ -13,6 +14,14 @@ load_dotenv()  # <-- Make sure .env file is read
 
 OPENAI_KEY = os.getenv("OPENAI_API_KEY")
 EMBED_MODEL = os.getenv("SENTENCE_TRANSFORMER_MODEL", None)
+
+print("OpenAI Key Loaded:", OPENAI_KEY is not None)  # Debug: ensure key is loaded
+
+# -----------------------------
+# Setup logging
+# -----------------------------
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # -----------------------------
 # Initialize FastAPI app
@@ -44,6 +53,13 @@ pipeline = RAGPipeline(
 )
 
 # -----------------------------
+# Request model for /ask endpoint
+# -----------------------------
+class QuestionRequest(BaseModel):
+    query: str
+    top_k: int = 5
+
+# -----------------------------
 # Routes
 # -----------------------------
 @app.post("/upload")
@@ -60,12 +76,16 @@ async def upload(file: UploadFile = File(...)):
 
 
 @app.post("/ask")
-async def ask(question: str = Form(...), top_k: int = Form(5)):
+async def ask(req: QuestionRequest):
     """
     Ask a question and get answer from the RAG pipeline
     """
-    res = pipeline.answer(question, top_k=top_k)
-    return res
+    try:
+        res = pipeline.answer(req.query, top_k=req.top_k)
+        return res
+    except Exception as e:
+        logger.error(f"Error in /ask endpoint: {e}", exc_info=True)
+        return {"error": "Internal Server Error", "details": str(e)}
 
 
 @app.get("/")
@@ -83,6 +103,13 @@ def info():
     """
     return {"chunks_indexed": pipeline.indexer.count()}
 
+# -----------------------------
+# Startup event logs
+# -----------------------------
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Starting backend...")
+    logger.info(f"Chunks indexed at startup: {pipeline.indexer.count()}")
 
 # -----------------------------
 # Run locally
