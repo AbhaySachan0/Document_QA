@@ -1,0 +1,13 @@
+pdfplumber
+beautifulsoup4
+tiktoken
+openai
+sentence-transformers
+faiss-cpu
+fastapi
+streamlit
+pydantic
+uvicorn
+python-multipart
+markdown
+
